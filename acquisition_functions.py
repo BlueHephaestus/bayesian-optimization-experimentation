@@ -3,16 +3,26 @@ import numpy as np
 import gaussian_base
 from gaussian_base import *
 
-class probability_improvement(object):
+class acquisition_function(object):
+
+    def __init__(self, confidence_interval):
+        self.confidence_interval = confidence_interval
+
+class probability_improvement(acquisition_function):
+
+    def __init__(self, confidence_interval):
+        acquisition_function.__init__(self, confidence_interval)
     
-    @staticmethod
-    def evaluate(means, variances, values, confidence_interval):
+    def evaluate(self, means, variances, values):
         improvement_probs = np.array([np.nan_to_num(cdf(val, mean, np.sqrt(variance))) for val, mean, variance in zip(values, means, variances)])
         return np.argmax(improvement_probs)
 
-class expected_improvement(object):
-    @staticmethod
-    def evaluate(means, variances, values, confidence_interval):
+class expected_improvement(acquisition_function):
+
+    def __init__(self, confidence_interval):
+        acquisition_function.__init__(self, confidence_interval)
+
+    def evaluate(self, means, variances, values):
         #Get our output values from plugging into our distribution x values
         dist_values = np.array([gaussian_distribution(val, mean, np.sqrt(variance)) for val, mean, variance in zip(values, means, variances)])
 
@@ -27,9 +37,11 @@ class expected_improvement(object):
 
         return np.argmax(expected_improvs)
 
-class upper_confidence_bound(object):
+class upper_confidence_bound(acquisition_function):
+
+    def __init__(self, confidence_interval):
+        acquisition_function.__init__(self, confidence_interval)
     
-    @staticmethod
-    def evaluate(means, variances, values, confidence_interval):
-        return np.argmax(means + confidence_interval * np.sqrt(variances))
+    def evaluate(self, means, variances, values):
+        return np.argmax(means + self.confidence_interval * np.sqrt(variances))
 
